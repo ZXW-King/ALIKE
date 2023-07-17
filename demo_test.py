@@ -59,11 +59,13 @@ def plot_keypoints(image, kpts, radius=2, color=(0, 0, 255)):
     return out
 
 
-def plot_matches(image0,
+def plot_matches(img_name,
+                 image0,
                  image1,
                  kpts0,
                  kpts1,
                  matches,
+                 match_point_write_dir,
                  radius=1,
                  color=(0, 255, 0)):
     out0 = plot_keypoints(image0, kpts0, radius, color)
@@ -82,6 +84,17 @@ def plot_matches(image0,
     mkpts1 = np.round(mkpts1).astype(int)
 
     points_out = out.copy()
+    i = 0
+    test_image_name = ['1614044935217943_L.png','1614044895123555_L.png','1614045104206922_L.png']
+    is_write = False
+    if match_point_write_dir and img_name in test_image_name:
+        is_write = True
+        # 测试的图片
+        match_point_root_dir = os.path.join(match_point_write_dir, f"top{args.top_k}_nms{args.radius}")
+        match_point_path = os.path.join(match_point_root_dir,img_name.split('.')[0])
+        if not os.path.exists(match_point_path):
+            os.makedirs(match_point_path)
+
     for kpt0, kpt1 in zip(mkpts0, mkpts1):
         (x0, y0), (x1, y1) = kpt0, kpt1
         mcolor = (
@@ -93,6 +106,15 @@ def plot_matches(image0,
                  color=mcolor,
                  thickness=1,
                  lineType=cv2.LINE_AA)
+        if is_write:
+            point_match = points_out.copy()
+            cv2.line(point_match, (x0, y0), (x1 + W0, y1),
+                     color=mcolor,
+                     thickness=2,
+                     lineType=cv2.LINE_AA)
+            cv2.imwrite(os.path.join(match_point_path,f"{i}_{img_name}"),point_match)
+            i += 1
+
 
     cv2.putText(out, str(len(mkpts0)),
                 (out.shape[1] - 150, out.shape[0] - 50),
@@ -120,6 +142,7 @@ if __name__ == '__main__':
     parser.add_argument('--radius', type=int, default=2,
                         help='The radius of non-maximum suppression (default: 2).')
     parser.add_argument('--write_dir', type=str, default='',help='Image save directory.')
+    parser.add_argument('--match_point_write_dir', type=str, default='',help='Image match point save directory.')
     parser.add_argument('--version', type=str, default='',help='version')
     args = parser.parse_args()
 
@@ -187,7 +210,8 @@ if __name__ == '__main__':
             continue
         end2 = time.time()
         status = f"matches/keypoints: {len(matches)}/{len(kpts)}"
-        vis_img,points_out = plot_matches(img, img2, kpts,kpts_ref, matches)
+        img_name = os.path.basename(img_name)
+        vis_img,points_out = plot_matches(img_name,img, img2, kpts,kpts_ref, matches, args.match_point_write_dir)
         cv2.namedWindow(args.model)
         cv2.setWindowTitle(args.model, args.model + ': ' + status)
         cv2.putText(vis_img, "Press 'q' or 'ESC' to stop.", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2,
@@ -207,8 +231,8 @@ if __name__ == '__main__':
             sum_net_t.append(net_t)
             sum_net_matches_t.append(net_matches_t)
             sum_total_t.append(total_t)
-        save_img_path = args.write_dir
-        if save_img_path:  # 匹配的图像文件保存
+        if args.write_dir:  # 匹配的图像文件保存
+            save_img_path = os.path.join(args.write_dir,f"top{args.top_k}_nms{args.radius}")
             img_name = os.path.basename(img_name)
             os.makedirs(save_img_path, exist_ok=True)
             out_file1 = os.path.join(save_img_path, "t" + img_name)

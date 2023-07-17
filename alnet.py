@@ -129,12 +129,12 @@ class ALNet(nn.Module):
         #     self.convhead1 = resnet.conv1x1(dim, dim)
         # self.convhead2 = resnet.conv1x1(dim, dim + 1)
         # R4.0.2
-        # self.head_descriptor = resnet.conv1x1(dim, dim)
-        # self.head_score = resnet.conv1x1(dim, 1)
-        # 4.0.3
-        self.head_descriptor = resnet.conv1x1(channel, dim)
-        self.neck = resnet.conv1x1(dim, dim)
+        self.head_descriptor = resnet.conv1x1(dim, dim)
         self.head_score = resnet.conv1x1(dim, 1)
+        # 4.0.3
+        # self.head_descriptor = resnet.conv1x1(channel, dim)
+        # self.neck = resnet.conv1x1(dim, dim)
+        # self.head_score = resnet.conv1x1(dim, 1)
 
     def forward(self, image):
         # ================================== feature encoder
@@ -165,16 +165,16 @@ class ALNet(nn.Module):
         # descriptor_map = x[:, :-1, :, :]
         # scores_map = torch.sigmoid(x[:, -1, :, :]).unsqueeze(1)
         # R4.0.2
-        # if not self.single_head:
-        #     x1234 = self.gate(self.head_descriptor(x1234))
-        # descriptor_map = self.head_descriptor(x1234)  # B x dim x H x W
-        # scores_map = torch.sigmoid(self.head_score(x1234))   # B x 1 x H x W
-        # R4.0.3
         if not self.single_head:
-            x1234 = self.gate(self.neck(x1234))
-
-        descriptor_map = self.head_descriptor(x3)  # B x dim x H x W
-        scores_map = torch.sigmoid(self.head_score(x1234))  # B x 1 x H x W
+            x1234 = self.gate(self.head_descriptor(x1234))
+        descriptor_map = self.head_descriptor(x1234)  # B x dim x H x W
+        scores_map = torch.sigmoid(self.head_score(x1234))   # B x 1 x H x W
+        # R4.0.3
+        # if not self.single_head:
+        #     x1234 = self.gate(self.neck(x1234))
+        #
+        # descriptor_map = self.head_descriptor(x3)  # B x dim x H x W
+        # scores_map = torch.sigmoid(self.head_score(x1234))  # B x 1 x H x W
 
         return scores_map, descriptor_map
 

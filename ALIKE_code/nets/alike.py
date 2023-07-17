@@ -7,7 +7,7 @@ from copy import deepcopy
 from torch import nn
 from torchvision.transforms import ToTensor
 
-from ALIKE_code.nets.alnet_dkd import ALNet
+from ALIKE_code.nets.alnet import ALNet
 from ALIKE_code.nets.soft_detect import SoftDetect
 import time
 
@@ -66,8 +66,8 @@ class ALIKE(ALNet):
         descriptor_map = torch.nn.functional.normalize(descriptor_map, p=2, dim=1)
 
         if ret_dict:
-            m = nn.Upsample(scale_factor=8, mode='bicubic', align_corners=True)  # 8倍上采样
-            descriptor_map = m(descriptor_map) # BxCxHxW
+            # m = nn.Upsample(scale_factor=8, mode='bicubic', align_corners=True)  # 8倍上采样
+            # descriptor_map = m(descriptor_map) # BxCxHxW
             return {'descriptor_map': descriptor_map, 'scores_map': scores_map, }
         else:
             return descriptor_map, scores_map

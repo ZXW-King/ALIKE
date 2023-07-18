@@ -10,7 +10,7 @@ import numpy as np
 from alike import ALike, configs
 from copy import deepcopy
 from decimal import Decimal
-from ALIKE_code.model_transfor.ckpt2pth2 import main
+from ALIKE_code.model_transfor.ckpt2pth3 import main
 
 class ImageLoader(object):
     def __init__(self, filepath: str):
@@ -166,9 +166,10 @@ if __name__ == '__main__':
     output_model_path = os.path.join(test_model_save_path,f"{os.path.basename(model_path).split('.')[0]}.pth")
 
     if model_path.endswith('.ckpt'): # 如果是ckpt并且模型不存在，则转换
-        if not os.path.exists(output_model_path):
+        # if not os.path.exists(output_model_path):
             main(model_path,output_model_path,args.device)
             print("模型转换成功!")
+            model_path = output_model_path
     elif model_path == 'default': # 如果是默认，则自动加载开源模型
         model_path = model_path_default[args.model]
 
@@ -188,7 +189,7 @@ if __name__ == '__main__':
     sum_net_t = []
     sum_net_matches_t = []
     sum_total_t = []  # 初始化时间列表
-    for i in range(4600,len(image_loader)):
+    for i in range(0,len(image_loader)):
         start = time.time()
         img,img_name = image_loader[i]
         img2,img2_name = image_loader2[i]

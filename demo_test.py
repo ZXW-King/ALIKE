@@ -169,7 +169,7 @@ if __name__ == '__main__':
         if not os.path.exists(output_model_path):
             main(model_path,output_model_path,args.device)
             print("模型转换成功!")
-            model_path = output_model_path
+        model_path = output_model_path
     elif model_path == 'default': # 如果是默认，则自动加载开源模型
         model_path = model_path_default[args.model]
 

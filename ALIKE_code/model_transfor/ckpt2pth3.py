@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import pytorch_lightning as pl
 from pytorch_lightning.utilities.cloud_io import load as pl_load
-from ALIKE_code.nets.alnet_dkd import ALNet
+from ALIKE_code.nets.alnet_old import ALNet
 from pytorch_lightning.plugins.io import TorchCheckpointIO as tcio
 from PIL import Image
 from torchvision import transforms

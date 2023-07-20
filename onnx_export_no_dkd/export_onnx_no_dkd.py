@@ -7,8 +7,8 @@ import numpy as np
 import torch
 
 from onnx_export.alike_onnx import ALike, configs
-# from alnet import ALNet
-from onnx_export_no_dkd.alnet_x import ALNet
+from alnet import ALNet
+# from onnx_export_no_dkd.alnet_x import ALNet
 def GetArgs():
     parser = argparse.ArgumentParser(description='ALIKE model export demo.')
     parser.add_argument('--model', choices=['alike-t', 'alike-s', 'alike-n', 'alike-l'], default="alike-n",help="The model configuration")
@@ -28,15 +28,6 @@ def main():
     model.eval()
 
     onnx_input = torch.rand(1, 3, h, w).to(device)
-    h_ = math.ceil(h / 32) * 32 if h % 32 != 0 else h
-    w_ = math.ceil(w / 32) * 32 if w % 32 != 0 else w
-    b, c, h, w = onnx_input.shape
-    if h_ != h:
-        h_padding = torch.zeros(b, c, h_ - h, w, device=device)
-        onnx_input = torch.cat([onnx_input, h_padding], dim=2)
-    if w_ != w:
-        w_padding = torch.zeros(b, c, h_, w_ - w, device=device)
-        onnx_input = torch.cat([onnx_input, w_padding], dim=3)
 
     torch.onnx.export(
         model,
@@ -46,7 +37,7 @@ def main():
         opset_version=12,
         do_constant_folding=True,
         input_names=['input'],
-        output_names=['output']
+        output_names=['output1','output2']
     )
     print("导出模型成功！")
 

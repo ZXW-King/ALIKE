@@ -127,16 +127,17 @@ def pre_deal_np(img,flg=False):
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     image = img_rgb.transpose(2, 0, 1)[None] / 255.0
     b, c, h, w = image.shape
-    h_ = math.ceil(h / 32) * 32 if h % 32 != 0 else h
-    w_ = math.ceil(w / 32) * 32 if w % 32 != 0 else w
-    if h_ != h:
+    h_ = math.ceil(h / 8) * 8 if h % 8 != 0 else h
+    w_ = math.ceil(w / 8) * 8 if w % 8 != 0 else w
+    if h_ > h:
         h_padding = np.zeros((b, c, h_ - h, w))
         image = np.concatenate([image, h_padding], dtype=np.float32,axis=2)
-    if w_ != w:
+    if w_ > w:
         w_padding = np.zeros((b, c, h_, w_ - w))
         image = np.concatenate([image, w_padding], dtype=np.float32,axis=3)
     if h_ != h or w_ != w:
         flg = True
+    image = image.astype(np.float32)
     return image,flg,h,w
 
 def sigmoid(x):
@@ -154,13 +155,13 @@ def main(model_file):
     start = time.time()
     model = ONNXModel(model_file)
     print("时间：",time.time()-start)
-    result1 = model.forward(img_rgb1)[0]
-    descriptor_map1 = torch.from_numpy(result1[:, :-1, :H1, :W1])
-    scores_map1 = torch.sigmoid(torch.from_numpy(result1[:, -1, :H1, :W1])).unsqueeze(1)
+    scores_map1,descriptor_map1 = model.forward(img_rgb1)
+    descriptor_map1 = torch.from_numpy(descriptor_map1)
+    scores_map1 = torch.from_numpy(scores_map1)
     output1 = post_deal(flg1,W1,H1,scores_map1, descriptor_map1)
-    result2 = model.forward(img_rgb2)[0]
-    descriptor_map2  = torch.from_numpy(result2[:, :-1, :H2, :W2])
-    scores_map2 = torch.sigmoid(torch.from_numpy(result2[:, -1, :H2, :W2])).unsqueeze(1)
+    scores_map2,descriptor_map2 = model.forward(img_rgb2)
+    descriptor_map2  = torch.from_numpy(descriptor_map2)
+    scores_map2 = torch.from_numpy(scores_map2)
     output2 = post_deal(flg2,W2,H2,scores_map2, descriptor_map2)
     kpts = output1['keypoints']
     desc = output1['descriptors']
@@ -178,6 +179,6 @@ def main(model_file):
 
 
 if __name__ == '__main__':
-    model_file = '/media/xin/work1/github_pro/ALIKE/onnx_export_no_dkd/alinet-n.onnx'
+    model_file = '/media/xin/work1/github_pro/ALIKE/onnx_export_no_dkd/alnet.onnx'
     check_model(model_file)
     main(model_file)

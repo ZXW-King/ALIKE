@@ -1,0 +1,52 @@
+data:
+    name: 'MegaDepth'
+    image_size: [384,640]
+    image_train_path: '/data2/Relocation/ALIKE/megadepth'
+    image_val_path: {hpatch_imw_path:['/data2/Relocation/ALIKE/hpatches-sequences-release','/data2/Relocation/ALIKE/imw2020-val'],other_path:[]}
+    image_type: 'jpg'
+    data_set:
+        debug: false
+        pairs_per_scene: 100
+        accumulate_grad_batches: 16
+        num_workers: 8
+        num_sanity_val_steps: 1
+model:
+    name: 'normal'
+    c1_4_dim_single_head: [16,32,64,128,128]
+    single_head: true
+    agg_mode: 'cat'
+    pe: false
+    detect_parameters:
+        radius: 2
+        top_k: 400
+        scores_th_eval: 0.2
+        n_limit_eval: 5000
+    gt_reprojection_th:
+        train_gt_th: 5
+        eval_gt_th: 3
+    loss_weight:
+        w_pk: 0.5
+        w_rp: 1
+        w_sp: 1
+        w_ds: 5
+        w_triplet: 0
+        sc_th: 0.1
+        norm: 1
+        temp_sp: 0.1
+        temp_ds: 0.1
+    training parameters:
+        gpus: [0]
+        warmup_steps: 500
+        t_total: 10000
+        log_freq_img: 2000
+
+    pretrained_model: null
+solver:
+    batch_size: 1
+    lr: 3e-4
+    reload_dataloaders_every_epoch: true
+    limit_train_batches: 5000
+    limit_val_batches: 1.0
+    max_epochs: 400
+    version: 'R4.0.4'
+

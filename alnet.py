@@ -113,15 +113,16 @@ class ALNet(nn.Module):
         self.conv2 = resnet.conv1x1(c2, dim // 4)
         self.conv3 = resnet.conv1x1(c3, dim // 4)
         self.conv4 = resnet.conv1x1(dim, dim // 4)
-        # self.upsample2 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        # self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True)
-        # self.upsample8 = nn.Upsample(scale_factor=8, mode='bilinear', align_corners=True)
-        # self.upsample32 = nn.Upsample(scale_factor=32, mode='bilinear', align_corners=True)
+        self.upsample2 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True)
+        self.upsample8 = nn.Upsample(scale_factor=8, mode='bilinear', align_corners=True)
+        self.upsample32 = nn.Upsample(scale_factor=32, mode='bilinear', align_corners=True)
+
         channel = dim // 4
-        self.upsample2 = UpSample(channel, 2)
-        self.upsample4 = UpSample(channel, 4)
-        self.upsample8 = UpSample(channel, 8)
-        self.upsample32 = UpSample(channel, 32)
+        # self.upsample2 = UpSample(channel, 2)
+        # self.upsample4 = UpSample(channel, 4)
+        # self.upsample8 = UpSample(channel, 8)
+        # self.upsample32 = UpSample(channel, 32)
 
         # ================================== detector and descriptor head
         self.single_head = single_head

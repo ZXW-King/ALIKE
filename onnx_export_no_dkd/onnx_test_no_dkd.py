@@ -169,6 +169,9 @@ def main(model_file):
     desc_ref = output2['descriptors']
     matches = mnn_mather(desc, desc_ref)
     vis_img, points_out = plot_matches(img1, img2, kpts, kpts_ref, matches)
+    cv2.putText(points_out, str(len(kpts)),
+                (points_out.shape[1] - 150, points_out.shape[0] - 50),
+                cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 2)
     cv2.imshow('points', points_out)
     cv2.imshow('matches', vis_img)
     cv2.imwrite('./res/point.png',points_out)

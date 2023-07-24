@@ -48,7 +48,7 @@ def mutual_argmax(value, mask=None, as_tuple=True):
     Returns:
 
     """
-    value = value - value.min()  # convert to non-negative tensor
+    value = value - torch.min(value)  # convert to non-negative tensor
     if mask is not None:
         value = value * mask
 

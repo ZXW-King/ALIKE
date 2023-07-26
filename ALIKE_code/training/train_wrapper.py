@@ -487,21 +487,14 @@ class TrainWrapper(ALIKE):
             # ==================================== covisible keypoints
             kpts0_cov, kpts01_cov, _, _ = warp(kpts0, warp01_params)
             kpts1_cov, kpts10_cov, _, _ = warp(kpts1, warp10_params)
-            print("kpts0_cov:",kpts0_cov.shape)
-            print("kpts1_cov:",kpts1_cov.shape)
-            print("kpts01_cov:",kpts01_cov.shape)
-            print("kpts10_cov:",kpts10_cov.shape)
             num_cov_feat = (len(kpts0_cov) + len(kpts1_cov)) / 2  # number of covisible keypoints
 
             # ==================================== get gt matching keypoints
             dist01 = compute_keypoints_distance(kpts0_cov, kpts10_cov)
             dist10 = compute_keypoints_distance(kpts1_cov, kpts01_cov)
-            print('dist01:',dist01,dist01.shape)
-            print('dist10:',dist10,dist10.shape)
             dist_mutual = (dist01 + dist10.t()) / 2.
             imutual = torch.arange(min(dist_mutual.shape), device=dist_mutual.device)
             dist_mutual[imutual, imutual] = 99999  # mask out diagonal
-            print("dist_mutual:",dist_mutual,dist_mutual.shape)
             mutual_min_indices = mutual_argmin(dist_mutual)
             dist = dist_mutual[mutual_min_indices]
             gt_num = (dist <= self.eval_gt_th).sum().cpu()  # number of gt matching keypoints

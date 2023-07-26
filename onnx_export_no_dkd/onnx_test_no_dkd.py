@@ -1,4 +1,3 @@
-###双输入图片测试
 import argparse
 import csv
 import glob
@@ -148,7 +147,7 @@ def plot_keypoints1(image, kpts, radius, color):
         x0, y0 = kpt
         cv2.circle(image, (x0, y0), radius, color, -1, lineType=cv2.LINE_4)
     return image,kpts.shape[0]
-def double_match(img1, img2,pts1, pts2, desc1, desc2,radius=1, color=(0, 255, 0)):
+def double_match(img_name,img1, img2,pts1, pts2, desc1, desc2,match_point_write_dir,radius=1, color=(0, 255, 0)):
     if pts1 is None or pts2 is None or desc1 is None or desc2 is None:
         print('[alike]==>pts1 is None or pts2 is None or desc1 is None or desc2 is None')
         return
@@ -166,9 +165,20 @@ def double_match(img1, img2,pts1, pts2, desc1, desc2,radius=1, color=(0, 255, 0)
     out = 255 * np.ones((H, W, 3), np.uint8)
     out[:H0, :W0, :] = out1
     out[:H1, W0:, :] = out2
-    points_out = out.copy()
     stereo_img = out
     count_match = 0
+
+    points_out = out.copy()
+    i = 0
+    test_image_name = ['1614044935217943_L.png', '1614044895123555_L.png', '1614045104206922_L.png','1614044731739682_L.png']
+    is_write = False
+    if match_point_write_dir and img_name in test_image_name:
+        is_write = True
+        # 测试的图片
+        match_point_root_dir = os.path.join(match_point_write_dir, f"top{args.top_k}_nms{args.radius}")
+        match_point_path = os.path.join(match_point_root_dir, img_name.split('.')[0])
+        if not os.path.exists(match_point_path):
+            os.makedirs(match_point_path)
 
     for match in matches:
         pt1 = pts1[match.queryIdx, :]
@@ -185,9 +195,16 @@ def double_match(img1, img2,pts1, pts2, desc1, desc2,radius=1, color=(0, 255, 0)
         cv2.line(stereo_img, tuple(ptL), tuple(ptR),
                  (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
                  thickness=1, lineType=cv2.LINE_AA)
+        if is_write:
+            point_match = points_out.copy()
+            cv2.line(point_match, tuple(ptL), tuple(ptR),
+                     color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
+                     thickness=2,
+                     lineType=cv2.LINE_AA)
+            cv2.imwrite(os.path.join(match_point_path,f"{i}_{img_name}"),point_match)
+            i += 1
 
     cv2.putText(stereo_img, str(count_match), (stereo_img.shape[1] - 150, stereo_img.shape[0] - 50), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 2)
-    cv2.putText(points_out, str(num1), (points_out.shape[1] - 150, points_out.shape[0] - 50), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 2)
     return stereo_img,points_out
 def post_deal(W,H,scores_map, descriptor_map,radius=2,top_k=2000, scores_th=0.2,n_limit=5000,sort=False):
     descriptor_map = torch.nn.functional.normalize(descriptor_map, p=2, dim=1)
@@ -222,41 +239,6 @@ def pre_deal_np(img,flg=False):
     image = image.astype(np.float32)
     return image,flg,h,w
 
-
-def main(model_file):
-    # 读取图片
-    path1 = '/media/xin/work1/github_pro/ALIKE/test_img/parker/L/1614045104206922_L.png'
-    path2 = '/media/xin/work1/github_pro/ALIKE/test_img/parker/R/1614045104206922_R.png'
-    img1 = cv2.imread(path1)
-    img2 = cv2.imread(path2)
-    img_rgb1,flg1,H1,W1 = pre_deal_np(img1)
-    img_rgb2,flg2,H2,W2 = pre_deal_np(img2)
-    # 加载 onnx_export
-    start = time.time()
-    model = ONNXModel(model_file)
-    print("时间：",time.time()-start)
-    scores_map1,descriptor_map1 = model.forward(img_rgb1)
-    descriptor_map1 = torch.from_numpy(descriptor_map1)
-    scores_map1 = torch.from_numpy(scores_map1)
-    output1 = post_deal(flg1,W1,H1,scores_map1, descriptor_map1)
-    scores_map2,descriptor_map2 = model.forward(img_rgb2)
-    descriptor_map2  = torch.from_numpy(descriptor_map2)
-    scores_map2 = torch.from_numpy(scores_map2)
-    output2 = post_deal(flg2,W2,H2,scores_map2, descriptor_map2)
-    kpts = output1['keypoints']
-    desc = output1['descriptors']
-    kpts_ref = output2['keypoints']
-    desc_ref = output2['descriptors']
-    matches = mnn_mather(desc, desc_ref)
-    vis_img, points_out = plot_matches(img1, img2, kpts, kpts_ref, matches)
-    cv2.imshow('points', points_out)
-    cv2.imshow('matches', vis_img)
-    cv2.imwrite('./res/point.png',points_out)
-    cv2.imwrite('./res/desc.png',vis_img)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
-    print('success!')
-
 def run(args):
     logging.basicConfig(level=logging.INFO)
     image_loader = ImageLoader(args.input)
@@ -272,7 +254,7 @@ def run(args):
     sum_net_t = []
     sum_net_matches_t = []
     sum_total_t = []  # 初始化时间列表
-    for i in range(2500, len(image_loader)):
+    for i in range(0, len(image_loader)):
         start = time.time()
         img, img_name = image_loader[i]
         img2, img2_name = image_loader2[i]
@@ -289,7 +271,7 @@ def run(args):
         output1 = post_deal(W1, H1, scores_map1, descriptor_map1,args.radius,args.top_k,args.scores_th,args.n_limit)
         descriptor_map2 = torch.from_numpy(descriptor_map2)
         scores_map2 = torch.from_numpy(scores_map2)
-        output2 = post_deal(W2, H2, scores_map2, descriptor_map2)
+        output2 = post_deal(W2, H2, scores_map2, descriptor_map2,args.radius,args.top_k,args.scores_th,args.n_limit)
         kpts = output1['keypoints']
         desc = output1['descriptors']
         kpts_ref = output2['keypoints']
@@ -299,12 +281,10 @@ def run(args):
         # except:
         #     continue
         end2 = time.time()
-        # status = f"matches/keypoints: {len(matches)}/{len(kpts)}"
         img_name = os.path.basename(img_name)
         # vis_img, points_out = plot_matches(img_name, img, img2, kpts, kpts_ref, matches, args.match_point_write_dir)
-        vis_img, points_out = double_match(img, img2, kpts, kpts_ref, desc, desc_ref)
+        vis_img, points_out = double_match(img_name,img, img2, kpts, kpts_ref, desc, desc_ref,args.match_point_write_dir)
         cv2.namedWindow(args.model)
-        # cv2.setWindowTitle(args.model, args.model + ': ' + status)
         cv2.putText(vis_img, "Press 'q' or 'ESC' to stop.", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2,
                     cv2.LINE_AA)
         cv2.putText(points_out, str(len(kpts)),
@@ -344,8 +324,8 @@ def run(args):
         if c == ord('q') or c == 27:
             break
 
-        # if i == 2100 or i == 2600 or i == 4700:
-        #     break
+        if i == 2100 or i == 2600 or i == 4700:
+            break
     # 计算平均帧率
     avg_net_FPS = np.mean(sum_net_t[1:len(sum_net_t) - 1])
     avg_net_matches_FPS = np.mean(sum_net_matches_t[1:len(sum_net_matches_t) - 1])

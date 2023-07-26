@@ -14,3 +14,4 @@ test_model_save/
 test_model/
 test_img/
 *.onnx
+test_pth_model/

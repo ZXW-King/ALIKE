@@ -189,7 +189,7 @@ if __name__ == '__main__':
     sum_net_t = []
     sum_net_matches_t = []
     sum_total_t = []  # 初始化时间列表
-    for i in range(2500,len(image_loader)):
+    for i in range(4600,len(image_loader)):
         start = time.time()
         img,img_name = image_loader[i]
         img2,img2_name = image_loader2[i]

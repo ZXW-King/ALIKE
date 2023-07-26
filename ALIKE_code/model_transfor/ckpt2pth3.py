@@ -60,7 +60,7 @@ if __name__ == "__main__":
     ckpt_path = '/media/xin/work1/github_pro/ALIKE/test_model/R4.0.3/epoch=56-mean_metric=0.2625.ckpt'
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     output_model = "torch_model.pth"
-    # model_res01,model_res02 = main(ckpt_path,output_model,device)
+    model_res01,model_res02 = main(ckpt_path,output_model,device)
     # model_res11,model_res12 = main(ckpt_path,output_model,device)
     # print(torch.equal(model_res01[0],model_res11[0]))
     # print(torch.equal(model_res02[0],model_res12[0]))

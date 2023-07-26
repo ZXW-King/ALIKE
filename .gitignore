@@ -13,3 +13,4 @@ log_train/
 test_model_save/
 test_model/
 test_img/
+*.onnx
